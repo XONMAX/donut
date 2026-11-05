@@ -14,12 +14,20 @@ function money(name: string, fallback: string): number {
 
 const isProd = process.env.NODE_ENV === 'production';
 
+/** Public URL the hosting platform gives us, used when SITE_URL isn't set. */
+function platformUrl(): string {
+  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  if (process.env.FLY_APP_NAME) return `https://${process.env.FLY_APP_NAME}.fly.dev`;
+  return `http://localhost:${num('PORT', 3000)}`;
+}
+
 export const config = {
   isProd,
   port: num('PORT', 3000),
   host: str('HOST', '0.0.0.0'),
   /** Public origin used for canonical URLs, sitemap and Origin (CSRF) checks. */
-  siteUrl: str('SITE_URL', `http://localhost:${num('PORT', 3000)}`).replace(/\/+$/, ''),
+  siteUrl: str('SITE_URL', platformUrl()).replace(/\/+$/, ''),
   dbPath: str('DB_PATH', 'data/app.db'),
   /** Trust X-Forwarded-* when behind a reverse proxy (Cloud Run, nginx, Cloudflare). */
   trustProxy: str('TRUST_PROXY', isProd ? '1' : ''),

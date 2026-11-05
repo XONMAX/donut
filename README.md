@@ -29,6 +29,19 @@ npm run lint              # type check
 npm run build && npm start
 ```
 
+## Hosting
+
+**Don't use Vercel or Netlify.** This is a long-running server: it keeps the bank bot logged into DonutSMP, runs the payout worker and streams live updates, and it stores data in SQLite on disk. Serverless hosts stop the process after each request and wipe the disk, so the site returns 404 there.
+
+Use any host that runs the `Dockerfile` with a persistent disk mounted at `/app/data`:
+
+- **Render (easiest):** Dashboard → **New → Blueprint** → pick this repo. `render.yaml` sets up the service, a 1 GB disk and a generated `ADMIN_TOKEN`. Disks need the paid Starter plan. Copy `ADMIN_TOKEN` from the service's Environment tab to unlock `/admin`.
+- **Railway:** New Project → Deploy from GitHub repo. Railway detects the Dockerfile. Add a Volume mounted at `/app/data`, then set `ADMIN_TOKEN` and `TRUST_PROXY=1`.
+- **Fly.io:** `fly launch`, then `fly volumes create data` and mount it at `/app/data`.
+- **Your own VPS:** the `docker run` command below.
+
+`SITE_URL` defaults to the URL Render, Railway or Fly assigns. Set it once you add a custom domain so canonical URLs and the sitemap use that domain.
+
 ## Going live
 
 1. Create a DonutSMP API key in-game with `/api` and set `DONUTSMP_API_KEY`.

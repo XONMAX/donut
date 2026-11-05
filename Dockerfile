@@ -11,8 +11,9 @@ ENV NODE_ENV=production PORT=3000
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
-RUN mkdir -p data && chown node:node data
-USER node
+RUN mkdir -p data
 EXPOSE 3000
-HEALTHCHECK CMD wget -qO- http://localhost:3000/healthz || exit 1
-CMD ["node", "--disable-warning=ExperimentalWarning", "dist/server.js"]
+HEALTHCHECK CMD wget -qO- http://localhost:${PORT}/healthz || exit 1
+# Start as root only to fix ownership of the mounted data volume (Render/Railway/Fly
+# mount it as root), then drop to the unprivileged "node" user (-p keeps the env vars).
+CMD ["sh", "-c", "chown -R node:node /app/data && exec su -p node -s /bin/sh -c 'exec node --disable-warning=ExperimentalWarning dist/server.js'"]
